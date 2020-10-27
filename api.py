@@ -35,10 +35,10 @@ class Api:
         response.text = 'Sorry mate, page not found'
 
     def route(self, path):   
-        # @wraps(handler)
+        assert not path in self.routes, f"Route {path} already exists"
+        
         def wrapper(handler):
-            if path in self.routes:
-                raise AssertionError(f"Route {path} already exists")
             self.routes[path] = handler
             return handler
+        
         return wrapper
