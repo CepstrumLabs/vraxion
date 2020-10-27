@@ -1,5 +1,7 @@
-from webob import Request, Response
 from functools import wraps
+
+from webob import Request, Response
+import parse
 
 
 class Api:
@@ -12,16 +14,18 @@ class Api:
         response = self.handle_request(request=request)
         return response(environ, start_response)
 
-    def find_handler(self, request):
+    def find_handler(self, request_path):
         for path, handler in self.routes.items(): 
-            if path == request.path:
-                return handler
+            parsed_result = parse.parse(path, request_path)
+            if parsed_result:
+                return handler, parsed_result.named
+        return None, None
 
     def handle_request(self, request):
         response = Response()
-        handler = self.find_handler(request=request)
+        handler, kwargs = self.find_handler(request_path=request.path)
         if handler is not None:
-            handler(request, response)
+            handler(request, response, **kwargs)
         else:
             self.default_response(response)
         return response
