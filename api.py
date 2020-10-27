@@ -12,12 +12,18 @@ class Api:
         response = self.handle_request(request=request)
         return response(environ, start_response)
 
-    def handle_request(self, request):
-        response = Response()
+    def find_handler(self, request):
         for path, handler in self.routes.items(): 
             if path == request.path:
-                handler(request, response)
-        self.default_response(response)
+                return handler
+
+    def handle_request(self, request):
+        response = Response()
+        handler = self.find_handler(request=request)
+        if handler is not None:
+            handler(request, response)
+        else:
+            self.default_response(response)
         return response
 
     def default_response(self, response):
