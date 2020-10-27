@@ -1,4 +1,5 @@
 from functools import wraps
+import inspect
 
 from webob import Request, Response
 import parse
@@ -25,6 +26,10 @@ class Api:
         response = Response()
         handler, kwargs = self.find_handler(request_path=request.path)
         if handler is not None:
+            if inspect.isclass(handler):
+                handler = getattr(handler(), request.method.lower(), None)
+                if handler is None:
+                    raise AttributeError(f"method {request.method.lower()} not allowed")
             handler(request, response, **kwargs)
         else:
             self.default_response(response)
