@@ -14,13 +14,15 @@ class Api:
 
     def handle_request(self, request):
         response = Response()
-        try:
-            handler = self.routes[request.path]
-            handler(request, response)
-        except KeyError:
-            response.status = 404
-        finally:
-            return response
+        for path, handler in self.routes.items(): 
+            if path == request.path:
+                handler(request, response)
+        self.default_response(response)
+        return response
+
+    def default_response(self, response):
+        response.status_code = 404
+        response.text = 'Sorry mate, page not found'
 
     def route(self, path):   
         # @wraps(handler)
