@@ -1,7 +1,11 @@
 from webob import Request, Response
+from functools import wraps
 
 
 class Api:
+
+    def __init__(self):
+        self.routes = {}
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -9,7 +13,18 @@ class Api:
         return response(environ, start_response)
 
     def handle_request(self, request):
-        user_agent = request.environ.get("HTTP_USER_AGENT", "No User-Agent found")
         response = Response()
-        response.text = f"Hello my friend with user agent -> {user_agent}"
-        return response
+        try:
+            handler = self.routes[request.path]
+            handler(request, response)
+        except KeyError:
+            response.status = 404
+        finally:
+            return response
+
+    def route(self, path):   
+        # @wraps(handler)
+        def wrapper(handler):
+            self.routes[path] = handler
+            return handler
+        return wrapper
