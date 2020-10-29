@@ -2,6 +2,8 @@ from functools import wraps
 import inspect
 
 from webob import Request, Response
+from requests import Session as RequestsSession
+from wsgiadapter import WSGIAdapter as RequestsWsgiAdapter
 import parse
 
 
@@ -45,5 +47,9 @@ class Api:
         def wrapper(handler):
             self.routes[path] = handler
             return handler
-        
         return wrapper
+
+    def test_session(self, base_url="http://testserver.com"):
+        session = RequestsSession()
+        session.mount(prefix=base_url, adapter=RequestsWsgiAdapter(self))
+        return session
