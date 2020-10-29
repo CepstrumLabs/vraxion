@@ -1,2 +1,2 @@
 [run]
-omit = venv/*,test_bumbo.py,conftest.py,app.py
+omit = venv/*,test_vraxion.py,application.py,wsgi_demo.py,wsgi_demo_with_middleware.py, app.py
