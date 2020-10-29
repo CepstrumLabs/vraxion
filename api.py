@@ -43,7 +43,7 @@ class Api:
 
     def route(self, path):   
         assert not path in self.routes, f"Route {path} already exists"
-        
+
         def wrapper(handler):
             self.routes[path] = handler
             return handler

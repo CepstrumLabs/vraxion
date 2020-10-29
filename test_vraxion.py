@@ -71,3 +71,39 @@ def test_default_404_response(client):
 
     assert response.status_code == 404
     assert response.text == "Sorry mate, page not found"
+
+
+def test_class_based_handler_get(api, client):
+    
+    response_text = 'get'
+
+    @api.route('/book')
+    class BookResource:
+        def get(self, req, resp):
+            resp.text = response_text
+
+    response = client.get("http://testserver.com/book")
+    assert response.text == response_text
+
+def test_class_based_handler_post(api, client):
+    
+    response_text = 'post'
+    
+    @api.route('/book')
+    class BookResource:
+        def post(self, req, resp):
+            resp.text = response_text
+
+    response = client.post("http://testserver.com/book")
+    assert response.text == response_text
+
+
+def test_class_based_handler_not_allowed(api, client):
+
+    @api.route('/book')
+    class BookResource:
+        def post(self, req, resp):
+            resp.text = 'hey'
+
+    with pytest.raises(AttributeError):
+        client.get("http://testserver.com/book")
