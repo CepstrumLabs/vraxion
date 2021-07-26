@@ -1,6 +1,6 @@
 import pytest
 
-from api import Api
+from vraxion.api import Api
 
 
 @pytest.fixture
