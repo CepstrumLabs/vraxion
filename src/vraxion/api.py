@@ -42,12 +42,14 @@ class Api:
         response.text = 'Sorry mate, page not found'
 
     def route(self, path):   
-        assert not path in self.routes, f"Route {path} already exists"
-
         def wrapper(handler):
-            self.routes[path] = handler
+            self.add_route(path=path, handler=handler)
             return handler
         return wrapper
+
+    def add_route(self, path, handler):
+        assert not path in self.routes, f"Route {path} already exists"
+        self.routes[path] = handler
 
     def test_session(self, base_url="http://testserver.com"):
         session = RequestsSession()

@@ -107,3 +107,38 @@ def test_class_based_handler_not_allowed(api, client):
 
     with pytest.raises(AttributeError):
         client.get("http://testserver.com/book")
+
+def test_add_route(api, client):
+    """
+    Ensure basic functionality of Api.add_route
+    Assert that a function - handler - can be 
+    added to routes using add_route
+    """
+    response_text = "Handler response"
+    
+    def handler(req, resp):
+        resp.text = response_text
+        return resp
+
+    api.add_route("/handler", handler)
+
+    response = client.get("http://testserver.com/handler")
+    assert response.text == response_text
+
+def test_add_route_with_class(api, client):
+    """
+    Ensure basic functionality of Api.add_route
+    Assert that a function - handler - can be 
+    added to routes using add_route
+    """
+    response_text = "Handler response"
+    
+    class Resource:
+
+        def get(self, req, resp):
+            resp.text = response_text
+            return resp
+
+    api.add_route("/books", Resource)
+    response = client.get("http://testserver.com/books")
+    assert response.text == response_text

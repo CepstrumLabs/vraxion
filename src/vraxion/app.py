@@ -24,4 +24,8 @@ class Book:
     
     def post(self, request, response):
         response.text = "Book Page POST"
-    
+
+def handler(req, resp):
+    resp.text = "sample"
+
+app.add_route("/sample", handler)
