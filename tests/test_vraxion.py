@@ -142,3 +142,27 @@ def test_add_route_with_class(api, client):
     api.add_route("/books", Resource)
     response = client.get("http://testserver.com/books")
     assert response.text == response_text
+
+
+def test_template(client):
+    """
+    Ensure basic functionality of Api.add_route
+    Assert that a function - handler - can be 
+    added to routes using add_route
+    """
+    title = "Awesome Test"
+    name="test_template"
+    
+    api = Api(templates_dir="/tests/templates")
+    
+    @api.route("/html")
+    def handler(req, resp):
+        resp.body = api.template("about.html", context={"title": title, "name": name}).encode()
+        return resp
+
+    client = api.test_session()
+    response = client.get("http://testserver.com/html")
+
+    assert "text/html" in response.headers["Content-Type"]
+    assert title in response.text
+    assert name in response.text

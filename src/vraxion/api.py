@@ -1,16 +1,20 @@
 from functools import wraps
 import inspect
+import os 
 
 from webob import Request, Response
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWsgiAdapter
+from jinja2 import Environment, FileSystemLoader
 import parse
 
 
 class Api:
 
-    def __init__(self):
+    def __init__(self, templates_dir="templates"):
         self.routes = {}
+        print(os.path.abspath(templates_dir))
+        self._template_env = Environment(loader=FileSystemLoader(os.path.abspath(templates_dir)))
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -55,3 +59,8 @@ class Api:
         session = RequestsSession()
         session.mount(prefix=base_url, adapter=RequestsWsgiAdapter(self))
         return session
+
+    def template(self, template_name, context=None):
+        if context is None:
+            context = {}
+        return self._template_env.get_template(template_name).render(**context)
