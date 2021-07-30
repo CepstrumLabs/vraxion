@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='vraxion',
-      version='0.0.1',
+      version='0.0.2',
       description='A web framework written in python',
       author='Mikeli Karotsieri',
       author_email='michael.karotsieris@gmail.com',
