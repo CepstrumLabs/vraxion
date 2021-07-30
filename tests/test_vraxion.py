@@ -1,7 +1,10 @@
+import logging
 import pytest
+import os
 
 from vraxion.api import Api
 
+logger = logging.getLogger("tests")
 
 @pytest.fixture
 def api():
@@ -166,3 +169,44 @@ def test_template(client):
     assert "text/html" in response.headers["Content-Type"]
     assert title in response.text
     assert name in response.text
+
+
+def test_custom_exception_handler(api, client):
+
+    def on_exception(req, resp, exc):
+        resp.text = "AttributeErrorHappend"
+
+    api.add_exception_handler(on_exception)
+
+    @api.route("/home")
+    def home(req, resp):
+        raise AttributeError()
+
+    response = client.get("http://testserver.com/home")
+    assert response.text == "AttributeErrorHappend"
+
+
+def test_404_is_returned_for_nonexistent_static_file(client):
+    assert client.get(f"http://testserver.com/main.css)").status_code == 404
+
+
+def test_200_is_returned_for_existing_static_files(api, tmpdir_factory):
+
+    FILE_DIR = "css"
+    FILE_NAME = "main.css"
+    FILE_CONTENTS = "body {background-color: red}"
+
+
+    def _create_static_file(static_dir):
+        asset = static_dir.mkdir(FILE_DIR).join(FILE_NAME)
+        asset.write(FILE_CONTENTS)
+
+    static_dir = tmpdir_factory.mktemp("static")
+    _create_static_file(static_dir)
+    api = Api(static_dir=str(static_dir))
+    client = api.test_session()
+    
+    response = client.get(f"http://testserver.com/{FILE_DIR}/{FILE_NAME}")
+    
+    assert response.status_code == 200
+    assert FILE_CONTENTS in response.text
