@@ -10,6 +10,8 @@ from whitenoise import WhiteNoise
 import parse
 
 
+ALLOWED_METHODS = ["get", "post", "put", "patch", "delete", "options"]
+
 
 class Api:
     def __init__(self, templates_dir="templates", static_dir="static/"):
@@ -32,21 +34,26 @@ class Api:
         return response(environ, start_response)
 
     def find_handler(self, request_path):
-        for path, handler in self.routes.items(): 
+        for path, handler_data in self.routes.items(): 
             parsed_result = parse.parse(path, request_path)
             if parsed_result:
-                return handler, parsed_result.named
+                return handler_data, parsed_result.named
         return None, None
 
     def handle_request(self, request):
         response = Response()
-        handler, kwargs = self.find_handler(request_path=request.path)
+        handler_data, kwargs = self.find_handler(request_path=request.path)
+        request_method = request.method.lower()
+        handler = handler_data.get("handler") if handler_data is not None else None
+        allowed_methods = handler_data.get("allowed_methods") if handler_data is not None else None
         if handler is not None:
             if inspect.isclass(handler):
-                handler = getattr(handler(), request.method.lower(), None)
+                handler = getattr(handler(), request_method, None)
                 if handler is None:
-                    raise AttributeError(f"method {request.method.lower()} not allowed")
+                    raise AttributeError(f"method {request_method} not allowed")
             try:
+                if request_method not in allowed_methods:
+                    raise AttributeError(f"method {request_method} not allowed")
                 handler(request, response, **kwargs)
             except Exception as e:
                 if self.exception_handler is None:
@@ -60,15 +67,15 @@ class Api:
         response.status_code = 404
         response.text = 'Sorry mate, page not found'
 
-    def route(self, path):   
+    def route(self, path, allowed_methods=ALLOWED_METHODS):   
         def wrapper(handler):
-            self.add_route(path=path, handler=handler)
+            self.add_route(path=path, handler=handler, allowed_methods=allowed_methods)
             return handler
         return wrapper
 
-    def add_route(self, path, handler):
+    def add_route(self, path, handler, allowed_methods=ALLOWED_METHODS):
         assert not path in self.routes, f"Route {path} already exists"
-        self.routes[path] = handler
+        self.routes[path] = {"handler": handler, "allowed_methods": allowed_methods}
 
     def test_session(self, base_url="http://testserver.com"):
         session = RequestsSession()

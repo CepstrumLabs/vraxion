@@ -241,3 +241,18 @@ def test_can_add_middleware(api, client):
 
     assert process_request_called == True    
     assert process_response_called == True
+
+
+def test_allowed_methods(api, client):
+
+    @api.route("/about", allowed_methods=['get'])
+    def about(request, response):
+        response.text = "Hey"
+    
+    url = "http://testserver.com/about"
+    with pytest.raises(AttributeError):
+        client.post(url, data={})
+    
+    assert client.get(url).status_code == 200
+    assert client.get(url).content == b"Hey"
+

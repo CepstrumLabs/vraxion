@@ -1,5 +1,5 @@
 build:
-	docker build -t vraxion_dev .
+	docker build --rm -t vraxion_dev .
 
 test: build
 	docker run --rm -ti vraxion_dev pytest -s /tests
