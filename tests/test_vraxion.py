@@ -1,8 +1,8 @@
 import logging
 import pytest
-import os
 
 from vraxion.api import Api
+from vraxion.middleware import Middleware
 
 logger = logging.getLogger("tests")
 
@@ -187,7 +187,7 @@ def test_custom_exception_handler(api, client):
 
 
 def test_404_is_returned_for_nonexistent_static_file(client):
-    assert client.get(f"http://testserver.com/main.css)").status_code == 404
+    assert client.get(f"http://testserver.com/static/main.css)").status_code == 404
 
 
 def test_200_is_returned_for_existing_static_files(api, tmpdir_factory):
@@ -206,7 +206,38 @@ def test_200_is_returned_for_existing_static_files(api, tmpdir_factory):
     api = Api(static_dir=str(static_dir))
     client = api.test_session()
     
-    response = client.get(f"http://testserver.com/{FILE_DIR}/{FILE_NAME}")
+    response = client.get(f"http://testserver.com/static/{FILE_DIR}/{FILE_NAME}")
     
     assert response.status_code == 200
     assert FILE_CONTENTS in response.text
+
+
+def test_can_add_middleware(api, client):
+
+    process_request_called = False
+    process_response_called = False
+
+    class CallMiddleWareMethods(Middleware):
+        
+        def __init__(self, app):
+            super().__init__(app)
+            self.app = app
+
+        def process_request(self, request):
+            nonlocal process_request_called
+            process_request_called = True
+
+        def process_response(self, request, response):
+            nonlocal process_response_called
+            process_response_called = True
+
+    api.add_middleware(CallMiddleWareMethods)
+    
+    @api.route('/')
+    def index(req, res):
+        res.text = "YOLO"
+
+    client.get('http://testserver.com/')
+
+    assert process_request_called == True    
+    assert process_response_called == True

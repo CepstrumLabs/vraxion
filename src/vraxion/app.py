@@ -1,4 +1,5 @@
 from vraxion.api import Api
+from vraxion.middleware import Middleware
 
 app = Api()
 
@@ -34,3 +35,11 @@ def handler_with_template(req, resp):
 app.add_route("/sample", handler)
 app.add_route("/awesome", handler_with_template)
 
+class SimpleCustomMiddleware(Middleware):
+    def process_request(self, req):
+        print("Processing request", req.url)
+
+    def process_response(self, req, res):
+        print("Processing response", req.url)
+
+app.add_middleware(SimpleCustomMiddleware)

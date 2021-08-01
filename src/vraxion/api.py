@@ -1,6 +1,6 @@
-from functools import wraps
 import inspect
-import os 
+import os
+from vraxion.middleware import Middleware 
 
 from webob import Request, Response
 from requests import Session as RequestsSession
@@ -16,10 +16,15 @@ class Api:
         self.routes = {}
         self.exception_handler = None
         self._template_env = Environment(loader=FileSystemLoader(os.path.abspath(templates_dir)))
+        self.middleware = Middleware(self)
         self.whitenoise = WhiteNoise(self.wsgi_app, root=static_dir)
 
     def __call__(self, environ, start_response):
-        return self.whitenoise(environ, start_response)
+        pathinfo = environ["PATH_INFO"]
+        if pathinfo.startswith("/static"):
+            environ["PATH_INFO"] = pathinfo[len("/static"):]
+            return self.whitenoise(environ, start_response)
+        return self.middleware(environ, start_response)
     
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
@@ -77,3 +82,6 @@ class Api:
 
     def add_exception_handler(self, exception_handler):
         self.exception_handler = exception_handler
+
+    def add_middleware(self, middleware):
+        self.middleware.add(middleware)
