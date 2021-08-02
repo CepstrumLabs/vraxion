@@ -3,3 +3,5 @@ __pycache__/
 .vscode/
 .coverage
 *.egg-info/
+**/dist
+**/build
