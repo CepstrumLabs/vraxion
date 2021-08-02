@@ -2,3 +2,14 @@
 
 ![purpose](https://img.shields.io/badge/purpose-learning-green.svg)
 ![PyPI](https://img.shields.io/pypi/v/vraxion.svg)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/vraxion)
+
+
+vraxion is a Python web framework.
+It's a WSGI framework and can be used with any WSGI application server such as Gunicorn.
+
+## Installation
+
+```shell
+pip install vraxion
+```
