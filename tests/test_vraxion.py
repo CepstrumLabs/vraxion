@@ -160,7 +160,7 @@ def test_template(client):
     
     @api.route("/html")
     def handler(req, resp):
-        resp.body = api.template("about.html", context={"title": title, "name": name}).encode()
+        resp.body = api.template("about.html", context={"title": title, "name": name})
         return resp
 
     client = api.test_session()
@@ -256,3 +256,35 @@ def test_allowed_methods(api, client):
     assert client.get(url).status_code == 200
     assert client.get(url).content == b"Hey"
 
+def test_text_with_custom_response_class(api, client):
+    
+    @api.route("/about", allowed_methods=['get'])
+    def about(request, response):
+        response.text = "Hey"
+    
+    response = client.get("http://testserver.com/about")
+    
+    assert response.status_code == 200
+    assert "Hey" in response.text
+    
+def test_json_response_helper(api, client):
+    @api.route("/json")
+    def json_handler(req, resp):
+        resp.json = {"name": "vraxion"}
+
+    response = client.get("http://testserver.com/json")
+    json_body = response.json()
+
+    assert response.headers["Content-Type"] == "application/json"
+    assert json_body["name"] == "vraxion"
+
+def test_html_response_helper(api, client):
+    @api.route("/html")
+    def html_handler(req, resp):
+        resp.html = api.template("about.html", context={"title": "Best Title", "name": "Best Name"})
+
+    response = client.get("http://testserver.com/html")
+
+    assert "text/html" in response.headers["Content-Type"]
+    assert "Best Title" in response.text
+    assert "Best Name" in response.text

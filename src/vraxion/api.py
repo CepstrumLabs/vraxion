@@ -1,14 +1,16 @@
 import inspect
 import os
-from vraxion.middleware import Middleware 
 
-from webob import Request, Response
+
+from webob import Request
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWsgiAdapter
 from jinja2 import Environment, FileSystemLoader
 from whitenoise import WhiteNoise
 import parse
 
+from vraxion.middleware import Middleware
+from vraxion.response import Response
 
 ALLOWED_METHODS = ["get", "post", "put", "patch", "delete", "options"]
 

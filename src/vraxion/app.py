@@ -30,7 +30,7 @@ def handler(req, resp):
     resp.text = "sample"
 
 def handler_with_template(req, resp):
-    resp.body = app.template(template_name="about.html", context={"title": "Awesome Framework", "name": "Vraxion"}).encode()
+    resp.body = app.template(template_name="about.html", context={"title": "Awesome Framework", "name": "Vraxion"})
 
 app.add_route("/sample", handler)
 app.add_route("/awesome", handler_with_template)
