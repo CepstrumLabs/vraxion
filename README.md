@@ -4,6 +4,7 @@
 ![PyPI](https://img.shields.io/pypi/v/vraxion.svg)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/vraxion)
 ![Build](https://github.com/michael-karotsieris/vraxion/actions/workflows/build.yml/badge.svg)
+![PyPI - License](https://img.shields.io/pypi/l/vraxion)
 
 
 vraxion is a Python web framework.
