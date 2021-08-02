@@ -12,6 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build vraxion
-        run: make
+        run: make build
+      - name: Test vraxion
+        run: make build
       # - name: Test vraxion
       #   run: make test
