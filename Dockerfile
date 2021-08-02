@@ -5,7 +5,6 @@ RUN pip install --upgrade pip
 
 COPY src/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
-RUN apk del --no-cache .build-deps
 
 RUN mkdir -p /src
 COPY src/ /src/
