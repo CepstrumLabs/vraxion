@@ -14,6 +14,4 @@ jobs:
       - name: Build vraxion
         run: make build
       - name: Test vraxion
-        run: make build
-      # - name: Test vraxion
-      #   run: make test
+        run: make test
