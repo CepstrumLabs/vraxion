@@ -3,6 +3,7 @@
 ![purpose](https://img.shields.io/badge/purpose-learning-green.svg)
 ![PyPI](https://img.shields.io/pypi/v/vraxion.svg)
 ![PyPI - Wheel](https://img.shields.io/pypi/wheel/vraxion)
+![Build](https://github.com/github/docs/actions/workflows/build.yml/badge.svg)
 
 
 vraxion is a Python web framework.
