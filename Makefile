@@ -10,4 +10,10 @@ serve: build
 pyclean:
 	rm -rf src/build src/dist
 
-all: test
+pypublish:
+	cd src && \
+	python3 setup.py sdist bdist_wheel && \
+	twine check dist/* && \
+	twine upload  --skip-existing -u ${TWINE_USERNAME} dist/*
+
+all: test pypublish pyclean
