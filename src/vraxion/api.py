@@ -1,6 +1,6 @@
 import inspect
 import os
-
+import logging
 
 from webob import Request
 from requests import Session as RequestsSession
@@ -14,9 +14,12 @@ from vraxion.response import Response
 
 ALLOWED_METHODS = ["get", "post", "put", "patch", "delete", "options"]
 
+logger = logging.getLogger(__name__)
 
 class Api:
     def __init__(self, templates_dir="templates", static_dir="static/"):
+        logger.info(f"Using {templates_dir} as a template directory")
+        logger.info(f"Using {static_dir} as a static directory")
         self.routes = {}
         self.exception_handler = None
         self._template_env = Environment(loader=FileSystemLoader(os.path.abspath(templates_dir)))
