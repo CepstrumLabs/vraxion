@@ -15,3 +15,20 @@ It's a WSGI framework and can be used with any WSGI application server such as G
 ```shell
 pip install vraxion
 ```
+
+
+## Usage
+
+```python
+
+# Define an API route
+
+from vraxion.api import Api
+
+api = Api()
+
+@api.route(path="/resource/")
+def get_resource(request, response):
+    response.json = {"text": "Hello"}
+
+```

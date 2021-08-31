@@ -6,13 +6,6 @@ from vraxion.middleware import Middleware
 
 logger = logging.getLogger("tests")
 
-@pytest.fixture
-def api():
-    return Api()
-
-@pytest.fixture
-def client(api):
-    return api.test_session()
 
 def test_basic_route_adding(api):
     """
