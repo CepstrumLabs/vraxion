@@ -2,11 +2,6 @@ import sqlite3
 import inspect
 
 class Table:
-    
-    @classmethod
-    @property
-    def table_name(cls):
-        return cls.__name__.lower()
 
     @classmethod
     def _get_create_sql(cls):
@@ -20,9 +15,9 @@ class Table:
                 fields.append(f"{name}_id INTEGER")
         
         fields = ", ".join(fields)
+        name = cls.__name__.lower()
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
-        print(f"cls.name={cls.table_name}")
-        return CREATE_TABLE_SQL.format(name=cls.table_name, fields=fields)
+        return CREATE_TABLE_SQL.format(name=name, fields=fields)
 
 class Column:
     def __init__(self, type):
@@ -52,12 +47,12 @@ class Database:
     def __init__(self, path):
         self.path = path
         self.connection = sqlite3.Connection(self.path)
-        self._tables = []
 
     def create(self, table: Table):
-        sql = table._get_create_sql()
-        self.tables.append(table.table_name)
+        create_sql = table._get_create_sql()
+        self.connection.execute(create_sql)
 
     @property
     def tables(self):
-        return self._tables
+        GET_TABLES_SQL = "SELECT name FROM sqlite_master WHERE type = 'table';"
+        return [table[0] for table in self.connection.execute(GET_TABLES_SQL).fetchall()]
