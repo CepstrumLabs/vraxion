@@ -15,12 +15,13 @@ def client(api):
 
 
 @pytest.fixture
-def db():
+def database():
     DB_PATH = "./test.db"
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
     db = Database(DB_PATH)
-    return db
+    yield db
+    os.remove(DB_PATH)
 
 
 @pytest.fixture
