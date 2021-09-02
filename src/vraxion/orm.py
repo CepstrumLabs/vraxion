@@ -30,6 +30,32 @@ class Table:
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
         return CREATE_TABLE_SQL.format(name=name, fields=fields)
 
+    @classmethod
+    def _get_columns(cls):
+        columns = []
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                columns.append(f"{name}")
+            elif isinstance(field, ForeignKey):
+                columns.append(f"{name}_id INTEGER")
+        return columns
+
+    def _get_insert_sql(self):
+        cls = self.__class__
+        INSERT_SQL = "INSERT INTO {name} ({columns}) VALUES ({placeholders});"
+        columns = self._get_columns()
+        placeholders = []
+        values = []
+        for column in columns:
+            placeholders.append("?")
+            values.append(getattr(self, column))
+        columns = ", ".join(self._get_columns())
+        placeholders =  ", ".join(placeholders)
+        sql = INSERT_SQL.format(name=cls.__name__.lower(), columns=columns, placeholders=placeholders)
+        print(sql, values)
+        return sql, values
+        
+
 class Column:
     def __init__(self, type):
         self.type = type
@@ -62,6 +88,13 @@ class Database:
     def create(self, table: Table):
         create_sql = table._get_create_sql()
         self.connection.execute(create_sql)
+
+    def save(self, instance: Table):
+        sql, params = instance._get_insert_sql()
+        cursor = self.connection.execute(sql, params)
+        instance._data["id"] = cursor.lastrowid
+        self.connection.commit()
+
 
     @property
     def tables(self):
