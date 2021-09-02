@@ -36,3 +36,12 @@ def test_create_tables(database, Author, Book):
     assert Book._get_create_sql() == "CREATE TABLE IF NOT EXISTS book (id INTEGER PRIMARY KEY AUTOINCREMENT, author_id INTEGER, published INTEGER, title TEXT);"
     for table in ("author", "book"):
         assert table in database.tables
+
+def test_create_instance(database, Author):
+    database.create(Author)
+
+    michael = Author(name="Michael", age=31)
+
+    assert michael.name == "Michael"
+    assert michael.age == 31
+    assert michael.id == None

@@ -3,6 +3,17 @@ import inspect
 
 class Table:
 
+    def __getattribute__(self, key: str):
+        _data = super().__getattribute__("_data")
+        if key in _data:
+            return _data[key]
+        return super().__getattribute__(key)
+
+    def __init__(self, **kwargs):
+        self._data = {"id": None}
+        for key, value in kwargs.items():
+                self._data[key] = value
+
     @classmethod
     def _get_create_sql(cls):
         fields = [

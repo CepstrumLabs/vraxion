@@ -29,6 +29,7 @@ def Author():
     class Author(Table):
         name = Column(str)
         age = Column(int)
+
     return Author
 
 @pytest.fixture

@@ -10,7 +10,7 @@ DESCRIPTION = "Vraxion is a Python Web Framework built for learning purposes."
 EMAIL = "michael.karotsieris@gmail.com"
 AUTHOR = "Michael Karotsieris"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 
 REQUIRED = [
     "Jinja2==2.10.3",
