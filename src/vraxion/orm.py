@@ -97,6 +97,13 @@ class Table:
         values.append(getattr(self, "id"))
         return (UPDATE_SQL.format(name=tbl_name, fields=", ".join([f"{field} = ?" for field in fields])), values)
 
+    def _get_delete_sql(self):
+        cls = self.__class__
+        DELETE_SQL = "DELETE FROM {name} where id = ?;"
+        id = getattr(self, "id")
+        values = [id]
+        return DELETE_SQL.format(name=cls.__name__.lower()), values
+
 class Column:
     def __init__(self, type):
         self.type = type
@@ -167,6 +174,11 @@ class Database:
     def update(self, instance):
         update_sql, values = instance._get_update_sql()
         self.connection.execute(update_sql, values)
+        self.connection.commit()
+
+    def delete(self, instance):
+        delete_sql, values = instance._get_delete_sql()
+        self.connection.execute(delete_sql, values)
         self.connection.commit()
 
     @property

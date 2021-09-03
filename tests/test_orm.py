@@ -129,3 +129,15 @@ def test_update_author(database, Author):
 
     assert john_from_db.age == 43
     assert john_from_db.name == "John Wick"
+
+def test_delete_author(database, Author):
+    database.create(Author)
+    john = Author(name="John Doe", age=23)
+    database.save(john)
+    id = john.id
+
+    database.delete(john)
+    assert john._get_delete_sql() == ("DELETE FROM author where id = ?;", [id])
+    all_authors = database.all(Author)
+
+    assert len(all_authors) == 0
