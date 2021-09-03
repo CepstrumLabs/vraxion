@@ -66,3 +66,32 @@ def test_insert_row(database, Author):
     anna = Author(name="Anna", age=31)
     database.save(anna)
     assert anna.id == 4
+
+
+def test_get_all(database, Author):
+    database.create(Author)
+
+    michael = Author(name="Michael", age=31)
+    giulia = Author(name="Giulia", age=21)
+    database.save(michael)
+    database.save(giulia)
+
+    rows = database.all(Author)
+    
+    assert Author._get_select_all_sql() == ("SELECT id, age, name FROM author;", ["id", "age", "name"])
+    assert {row.name for row in rows}  == {"Michael", "Giulia"}
+    assert {row.age for row in rows} == { 31, 21 }
+
+
+def test_get_one(database, Author):
+    database.create(Author)
+    michael = Author(name="Michael", age=31)
+    database.save(michael)
+
+    michael_from_db = database.get(Author, id=1)
+    michael._get_select_sql(id=1) == ("SELECT id, age, name FROM author WHERE (id=?);", ["id", "age", "name"], [1])
+
+    assert type(michael_from_db) == Author
+    assert michael_from_db.id == michael.id
+    assert michael_from_db.name == michael.name
+    assert michael_from_db.age == michael.age

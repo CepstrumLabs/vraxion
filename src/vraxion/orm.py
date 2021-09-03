@@ -9,6 +9,11 @@ class Table:
             return _data[key]
         return super().__getattribute__(key)
 
+    def __setattr__(self, key: str, value):
+        super().__setattr__(key, value)
+        if key in self._data:
+            self._data[key] = value
+
     def __init__(self, **kwargs):
         self._data = {"id": None}
         for key, value in kwargs.items():
@@ -52,9 +57,23 @@ class Table:
         columns = ", ".join(self._get_columns())
         placeholders =  ", ".join(placeholders)
         sql = INSERT_SQL.format(name=cls.__name__.lower(), columns=columns, placeholders=placeholders)
-        print(sql, values)
         return sql, values
-        
+
+    @classmethod
+    def _get_select_all_sql(cls):
+        columns = ["id"]
+        columns.extend(cls._get_columns())
+        name = cls.__name__.lower()
+        SELECT_ALL_SQL = "SELECT {columns} FROM {name};" 
+        return SELECT_ALL_SQL.format(columns=', '.join(columns), name=name), columns
+
+    @classmethod
+    def _get_select_sql(cls, id):
+        columns = ["id"]
+        columns.extend(cls._get_columns())
+        SELECT_ALL_SQL = "SELECT {columns} FROM {name} WHERE (id=?);"
+        params = [id]
+        return SELECT_ALL_SQL.format(columns=', '.join(columns), name=cls.__name__.lower()), columns, params
 
 class Column:
     def __init__(self, type):
@@ -71,9 +90,11 @@ class Column:
         }
         return PY_TO_SQL_TYPE_MAP[self.type]
 
+
 class ForeignKey:
     def __init__(self, table):
         self.table = table
+
 
 class ManyToMany(Column):
     pass
@@ -95,6 +116,28 @@ class Database:
         instance._data["id"] = cursor.lastrowid
         self.connection.commit()
 
+    def all(self, table: Table):
+        select_all_sql, fields = table._get_select_all_sql()
+        cursor = self.connection.execute(select_all_sql)
+        rows = cursor.fetchall()
+        instances = []
+        for row in rows:
+            instance = table()
+            for field, value in zip(fields, row):
+                setattr(instance, field, value)
+                instances.append(instance)
+        return instances
+
+    def get(self, table: Table, id: int):
+        sql, fields, params = table._get_select_sql(id=id)
+        row = self.connection.execute(sql, params).fetchone()
+        if row is None:
+            raise Exception(f"{table.__name__} instance with id {id} does not exist")
+        instance = table()
+        for field, value in zip(fields, row):
+            setattr(instance, field, value)
+            assert getattr(instance, field) == value
+        return instance
 
     @property
     def tables(self):
