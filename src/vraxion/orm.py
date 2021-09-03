@@ -42,18 +42,24 @@ class Table:
             if isinstance(field, Column):
                 columns.append(f"{name}")
             elif isinstance(field, ForeignKey):
-                columns.append(f"{name}_id INTEGER")
+                columns.append(f"{name}_id")
         return columns
 
     def _get_insert_sql(self):
         cls = self.__class__
         INSERT_SQL = "INSERT INTO {name} ({columns}) VALUES ({placeholders});"
-        columns = self._get_columns()
+        fields = []
         placeholders = []
         values = []
-        for column in columns:
-            placeholders.append("?")
-            values.append(getattr(self, column))
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+                values.append(getattr(self, name))
+                placeholders.append("?")
+            elif isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+                values.append(getattr(self, name).id)
+                placeholders.append("?")
         columns = ", ".join(self._get_columns())
         placeholders =  ", ".join(placeholders)
         sql = INSERT_SQL.format(name=cls.__name__.lower(), columns=columns, placeholders=placeholders)
@@ -74,6 +80,22 @@ class Table:
         SELECT_ALL_SQL = "SELECT {columns} FROM {name} WHERE (id=?);"
         params = [id]
         return SELECT_ALL_SQL.format(columns=', '.join(columns), name=cls.__name__.lower()), columns, params
+
+    def _get_update_sql(self):
+        cls = self.__class__
+        tbl_name = cls.__name__.lower()
+        fields = []
+        values = []
+        UPDATE_SQL = "UPDATE {name} SET {fields} WHERE id = ?;"
+        for name, field in inspect.getmembers(cls):
+            if isinstance(field, Column):
+                fields.append(name)
+                values.append(getattr(self, name))
+            elif isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+                values.append(getattr(self, name).id)
+        values.append(getattr(self, "id"))
+        return (UPDATE_SQL.format(name=tbl_name, fields=", ".join([f"{field} = ?" for field in fields])), values)
 
 class Column:
     def __init__(self, type):
@@ -135,9 +157,17 @@ class Database:
             raise Exception(f"{table.__name__} instance with id {id} does not exist")
         instance = table()
         for field, value in zip(fields, row):
+            if field.endswith("_id"):
+                field = field[:-3]
+                fk = getattr(table, field)
+                value = self.get(fk.table, id=value)
             setattr(instance, field, value)
-            assert getattr(instance, field) == value
         return instance
+
+    def update(self, instance):
+        update_sql, values = instance._get_update_sql()
+        self.connection.execute(update_sql, values)
+        self.connection.commit()
 
     @property
     def tables(self):

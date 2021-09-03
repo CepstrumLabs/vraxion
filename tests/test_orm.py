@@ -95,3 +95,37 @@ def test_get_one(database, Author):
     assert michael_from_db.id == michael.id
     assert michael_from_db.name == michael.name
     assert michael_from_db.age == michael.age
+
+
+def test_get_book(database, Author, Book):
+    database.create(Author)
+    database.create(Book)
+    john = Author(name="John Doe", age=43)
+    arash = Author(name="Arash Kun", age=50)
+    book = Book(title="Building an ORM", published=False, author=john)
+    book2 = Book(title="Scoring Goals", published=True, author=arash)
+    database.save(john)
+    database.save(arash)
+    database.save(book)
+    database.save(book2)
+
+    book_from_db = database.get(Book, 2)
+
+    assert book_from_db.title == "Scoring Goals"
+    assert book_from_db.author.name == "Arash Kun"
+    assert book_from_db.author.id == 2
+
+
+def test_update_author(database, Author):
+    database.create(Author)
+    john = Author(name="John Doe", age=23)
+    database.save(john)
+
+    john.age = 43
+    john.name = "John Wick"
+    database.update(john)
+
+    john_from_db = database.get(Author, id=john.id)
+
+    assert john_from_db.age == 43
+    assert john_from_db.name == "John Wick"
