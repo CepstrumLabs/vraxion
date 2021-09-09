@@ -284,3 +284,26 @@ def test_html_response_helper(api, client):
     assert "text/html" in response.headers["Content-Type"]
     assert "Best Title" in response.text
     assert "Best Name" in response.text
+
+def test_same_route_different_method(api, client):
+    
+    base_url = "http://testserver.com"
+
+    @api.route("/books", 'get')
+    def list_books(req, resp):
+        resp.json = {"books": ['book1', 'book2', 'book3']}
+
+    @api.route("/books", 'post')
+    def create_book(req, resp):
+        resp.status_code = 201
+        resp.json = {"book": 'book1'}
+
+    list_response = client.get(base_url + '/books')
+    create_response = client.post(base_url + '/books')
+
+
+    assert list_response.status_code == 200
+    assert create_response.status_code == 201
+
+    assert list_response.json() == {"books": ['book1', 'book2', 'book3']}
+    assert create_response.json() ==  {"book": 'book1'}
