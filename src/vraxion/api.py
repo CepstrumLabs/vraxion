@@ -49,16 +49,16 @@ class Api:
         response = Response()
         handler_data, kwargs = self.find_handler(request_path=request.path)
         request_method = request.method.lower()
-        handler = handler_data.get("handler") if handler_data is not None else None
-        allowed_methods = handler_data.get("allowed_methods") if handler_data is not None else None
+        handler_for_method = handler_data.get(request_method) if handler_data else None
+        handler = handler_for_method.get("handler") if handler_for_method is not None else None
+        if handler_data and not handler_for_method:
+            raise AttributeError(f"method {request_method} not allowed")
         if handler is not None:
-            if inspect.isclass(handler):
-                handler = getattr(handler(), request_method, None)
-                if handler is None:
-                    raise AttributeError(f"method {request_method} not allowed")
+            # if inspect.isclass(handler):
+            #     handler = getattr(handler(), request_method, None)
+            #     if handler is None:
+            #         raise AttributeError(f"method {request_method} not allowed")
             try:
-                if request_method not in allowed_methods:
-                    raise AttributeError(f"method {request_method} not allowed")
                 handler(request, response, **kwargs)
             except Exception as e:
                 if self.exception_handler is None:
@@ -72,15 +72,17 @@ class Api:
         response.status_code = 404
         response.text = 'Sorry mate, page not found'
 
-    def route(self, path, allowed_methods=ALLOWED_METHODS):   
+    def route(self, path, method, allowed_methods=ALLOWED_METHODS):
         def wrapper(handler):
-            self.add_route(path=path, handler=handler, allowed_methods=allowed_methods)
+            self.add_route(path=path, method=method,  handler=handler, allowed_methods=allowed_methods)
             return handler
         return wrapper
 
-    def add_route(self, path, handler, allowed_methods=ALLOWED_METHODS):
-        assert not path in self.routes, f"Route {path} already exists"
-        self.routes[path] = {"handler": handler, "allowed_methods": allowed_methods}
+    def add_route(self, path, method, handler, allowed_methods=ALLOWED_METHODS):
+        if self.routes.get(path) is None:
+            self.routes[path] = {}
+        assert not method in self.routes[path], f"Route {path} for method {method} already exists"
+        self.routes[path][method] = {"handler": handler, "allowed_methods": allowed_methods}
 
     def test_session(self, base_url="http://testserver.com"):
         session = RequestsSession()
