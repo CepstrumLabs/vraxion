@@ -54,10 +54,6 @@ class Api:
         if handler_data and not handler_for_method:
             raise AttributeError(f"method {request_method} not allowed")
         if handler is not None:
-            # if inspect.isclass(handler):
-            #     handler = getattr(handler(), request_method, None)
-            #     if handler is None:
-            #         raise AttributeError(f"method {request_method} not allowed")
             try:
                 handler(request, response, **kwargs)
             except Exception as e:
