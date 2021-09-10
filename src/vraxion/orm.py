@@ -1,5 +1,8 @@
 import sqlite3
 import inspect
+import logging
+
+logger = logging.getLogger("vraxion.orm")
 
 class Table:
 
@@ -138,10 +141,15 @@ class Database:
     def create(self, table: Table):
         create_sql = table._get_create_sql()
         self.connection.execute(create_sql)
+        logger.info(f"Create table with sql {create_sql}")
 
     def save(self, instance: Table):
         sql, params = instance._get_insert_sql()
-        cursor = self.connection.execute(sql, params)
+        try:
+            logger.info(f"cursor = self.connection.execute({sql}, {params})")
+            cursor = self.connection.execute(sql, params)
+        except Exception:
+            logger.exception(f"Encountered exception with query sql {sql} and params {params}")
         instance._data["id"] = cursor.lastrowid
         self.connection.commit()
 
@@ -154,7 +162,7 @@ class Database:
             instance = table()
             for field, value in zip(fields, row):
                 setattr(instance, field, value)
-                instances.append(instance)
+            instances.append(instance)
         return instances
 
     def get(self, table: Table, id: int):
