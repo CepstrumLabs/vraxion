@@ -2,7 +2,7 @@ import logging
 import pytest
 
 from vraxion.api import Api
-from vraxion.middleware import Middleware, LogMiddleWare
+from vraxion.middleware import Middleware, LogMiddleware
 
 logger = logging.getLogger("vraxion")
 def test_basic_route_adding(api):
@@ -315,7 +315,7 @@ class TestLogMiddleware:
         caplog.set_level(logging.DEBUG, "vraxion")
 
         
-        api.add_middleware(LogMiddleWare)
+        api.add_middleware(LogMiddleware)
 
         @api.route("/books", method='get')
         def list_books(req, resp):
@@ -323,14 +323,14 @@ class TestLogMiddleware:
 
 
         _ = client.get(base_url + '/books')
-        assert LogMiddleWare.LOG_MESSAGE_FMT.format(method="GET", url="http://testserver.com/books", body="") in caplog.text
+        assert LogMiddleware.LOG_MESSAGE_FMT.format(method="GET", url="http://testserver.com/books", body="") in caplog.text
 
     def test_logs_post_request(self, api, client, caplog):
         caplog.clear()
         
         base_url = "http://testserver.com"
         caplog.set_level(logging.DEBUG, "vraxion")
-        api.add_middleware(LogMiddleWare)
+        api.add_middleware(LogMiddleware)
 
         @api.route("/books", method='post')
         def list_books(req, resp):
@@ -338,4 +338,4 @@ class TestLogMiddleware:
 
 
         _ = client.post(base_url + '/books', json={"a": "b"})
-        assert LogMiddleWare.LOG_MESSAGE_FMT.format(method="POST", url="http://testserver.com/books", body="{'a': 'b'}") in caplog.text
+        assert LogMiddleware.LOG_MESSAGE_FMT.format(method="POST", url="http://testserver.com/books", body="{'a': 'b'}") in caplog.text
