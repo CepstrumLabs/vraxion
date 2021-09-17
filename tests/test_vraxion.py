@@ -2,11 +2,9 @@ import logging
 import pytest
 
 from vraxion.api import Api
-from vraxion.middleware import Middleware
+from vraxion.middleware import Middleware, LogMiddleWare
 
-logger = logging.getLogger("tests")
-
-
+logger = logging.getLogger("vraxion")
 def test_basic_route_adding(api):
     """
     Ensure that we can create a basic route
@@ -307,3 +305,37 @@ def test_same_route_different_method(api, client):
 
     assert list_response.json() == {"books": ['book1', 'book2', 'book3']}
     assert create_response.json() ==  {"book": 'book1'}
+
+
+class TestLogMiddleware:
+
+    def test_logs_request(self, api, client, caplog):
+        caplog.clear()
+        base_url = "http://testserver.com"
+        caplog.set_level(logging.DEBUG, "vraxion")
+
+        
+        api.add_middleware(LogMiddleWare)
+
+        @api.route("/books", method='get')
+        def list_books(req, resp):
+            resp.json = {"books": ['book1', 'book2', 'book3']}
+
+
+        _ = client.get(base_url + '/books')
+        assert LogMiddleWare.LOG_MESSAGE_FMT.format(method="GET", url="http://testserver.com/books", body="") in caplog.text
+
+    def test_logs_post_request(self, api, client, caplog):
+        caplog.clear()
+        
+        base_url = "http://testserver.com"
+        caplog.set_level(logging.DEBUG, "vraxion")
+        api.add_middleware(LogMiddleWare)
+
+        @api.route("/books", method='post')
+        def list_books(req, resp):
+            resp.json = {"books": ['book1', 'book2', 'book3']}
+
+
+        _ = client.post(base_url + '/books', json={"a": "b"})
+        assert LogMiddleWare.LOG_MESSAGE_FMT.format(method="POST", url="http://testserver.com/books", body="{'a': 'b'}") in caplog.text

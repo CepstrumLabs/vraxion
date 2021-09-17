@@ -1,7 +1,12 @@
+import logging
 from webob import Request
+import json
+
+logger = logging.getLogger("vraxion.log")
+
 
 class Middleware:
-
+    
     def __init__(self, app):
         self.app = app
     
@@ -24,3 +29,16 @@ class Middleware:
         response = self.app.handle_request(request)
         self.process_response(request, response)
         return response
+
+
+class LogMiddleware(Middleware):
+    """
+    A logger to help for debugging
+    """
+    LOG_MESSAGE_FMT = "{method} {url} {body}"
+    
+    def process_request(self, request):
+        body = json.loads(request.body.decode()) if request.body else None
+        logger.debug(msg=self.LOG_MESSAGE_FMT.format(method=request.method, url=request.url, body=body))
+
+        

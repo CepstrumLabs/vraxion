@@ -14,7 +14,7 @@ from vraxion.response import Response
 
 ALLOWED_METHODS = ["get", "post", "put", "patch", "delete", "options"]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("vraxion")
 
 class Api:
     def __init__(self, templates_dir="templates", static_dir="static/"):
