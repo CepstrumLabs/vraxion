@@ -9,10 +9,10 @@ NAME = "vraxion"
 DESCRIPTION = "Vraxion is a Python Web Framework built for learning purposes."
 EMAIL = "michael.karotsieris@gmail.com"
 AUTHOR = "Michael Karotsieris"
-REQUIRES_PYTHON = ">=3.6.0"
+REQUIRES_PYTHON = ">=3.9.0"
 VERSION=None
 REQUIRED = [
-    "Jinja2==2.10.3",
+    "Jinja2==3.1.2",
     "parse==1.12.1",
     "requests==2.22.0",
     "requests-wsgi-adapter==0.4.1",
@@ -55,7 +55,7 @@ setup(
     include_package_data=True,
     license="MIT",
     classifiers=[
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.9",
     ],
     setup_requires=["wheel"],
 )
