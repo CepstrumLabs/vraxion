@@ -5,6 +5,7 @@ from vraxion.orm import Table, Column, Database, ForeignKey
 from vraxion.api import Api
 
 
+TEST_DB_PATH = "./test.db"
 @pytest.fixture
 def api():
     return Api()
@@ -16,12 +17,11 @@ def client(api):
 
 @pytest.fixture
 def database():
-    DB_PATH = "./test.db"
-    if os.path.exists(DB_PATH):
-        os.remove(DB_PATH)
-    db = Database(DB_PATH)
+    if os.path.exists(TEST_DB_PATH):
+        os.remove(TEST_DB_PATH)
+    db = Database(TEST_DB_PATH)
     yield db
-    os.remove(DB_PATH)
+    os.remove(TEST_DB_PATH)
 
 
 @pytest.fixture
