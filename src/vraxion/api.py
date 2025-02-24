@@ -95,3 +95,9 @@ class Api:
 
     def add_middleware(self, middleware):
         self.middleware.add(middleware)
+
+    def add_db(self, db):
+        self.db = db
+
+    def get_db(self):
+        return self.db

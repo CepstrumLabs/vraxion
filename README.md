@@ -16,7 +16,6 @@ It's a WSGI framework and can be used with any WSGI application server such as G
 pip install vraxion
 ```
 
-
 ## Usage
 
 ```python
