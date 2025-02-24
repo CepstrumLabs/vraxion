@@ -1,15 +1,40 @@
 import sqlite3
 import inspect
 import logging
+from typing import Any
 
 logger = logging.getLogger("vraxion.orm")
 
 class Table:
 
-    def __getattribute__(self, key: str):
-        _data = super().__getattribute__("_data")
-        if key in _data:
-            return _data[key]
+    def __getattribute__(self, key: str) -> Any:
+        """Custom attribute access for handling both data and regular attributes.
+        
+        This method provides a way to access both stored data values and regular
+        class attributes. It first checks if the requested key exists in the
+        internal _data dictionary, and if not, falls back to normal attribute
+        lookup.
+
+        Args:
+            key (str): The name of the attribute to access.
+
+        Returns:
+            Any: The value of the requested attribute.
+
+        Example:
+            >>> instance = MyClass()
+            >>> instance._data = {'name': 'John'}
+            >>> instance.name  # Returns 'John' from _data
+            >>> instance.other_attr  # Falls back to normal attribute lookup
+        """
+        # Get the internal data dictionary using the parent's __getattribute__
+        internal_data = super().__getattribute__("_data")
+        
+        # First check if the key exists in the internal data dictionary
+        if key in internal_data:
+            return internal_data[key]
+        
+        # If not found in _data, fall back to normal attribute lookup
         return super().__getattribute__(key)
 
     def __setattr__(self, key: str, value):
