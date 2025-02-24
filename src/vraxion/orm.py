@@ -1,21 +1,68 @@
 import sqlite3
 import inspect
 import logging
+from typing import Any
 
 logger = logging.getLogger("vraxion.orm")
 
 class Table:
 
-    def __getattribute__(self, key: str):
-        _data = super().__getattribute__("_data")
-        if key in _data:
-            return _data[key]
+    def __getattribute__(self, key: str) -> Any:
+        """Custom attribute access for handling both data and regular attributes.
+        
+        This method provides a way to access both stored data values and regular
+        class attributes. It first checks if the requested key exists in the
+        internal _data dictionary, and if not, falls back to normal attribute
+        lookup.
+
+        Args:
+            key (str): The name of the attribute to access.
+
+        Returns:
+            Any: The value of the requested attribute.
+
+        Example:
+            >>> instance = MyClass()
+            >>> instance._data = {'name': 'John'}
+            >>> instance.name  # Returns 'John' from _data
+            >>> instance.other_attr  # Falls back to normal attribute lookup
+        """
+        # Get the internal data dictionary using the parent's __getattribute__
+        internal_data = super().__getattribute__("_data")
+        
+        # First check if the key exists in the internal data dictionary
+        if key in internal_data:
+            return internal_data[key]
+        
+        # If not found in _data, fall back to normal attribute lookup
         return super().__getattribute__(key)
 
-    def __setattr__(self, key: str, value):
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Custom attribute setter that handles both instance attributes and data storage.
+        
+        This method provides a dual-purpose attribute setter that:
+        1. Sets the attribute normally using the parent class setter
+        2. Updates the internal _data dictionary if the key exists there
+        
+        Args:
+            key (str): The name of the attribute to set
+            value (Any): The value to assign to the attribute
+            
+        Example:
+            >>> instance = MyClass()
+            >>> instance._data = {'name': 'John'}
+            >>> instance.name = 'Jane'  # Updates both attribute and _data
+        """
+        # First, set the attribute normally using parent class setter
         super().__setattr__(key, value)
-        if key in self._data:
-            self._data[key] = value
+        
+        # If this key exists in our data storage, update it there too
+        try:
+            if key in self._data:
+                self._data[key] = value
+        except AttributeError:
+            # Handle case where _data hasn't been initialized yet
+            pass
 
     def __init__(self, **kwargs):
         self._data = {"id": None}
@@ -49,23 +96,47 @@ class Table:
         return columns
 
     def _get_insert_sql(self):
+        """Generate SQL INSERT statement and values for the current record.
+
+        Returns:
+            tuple: A tuple containing (sql_statement, values_list) where:
+                - sql_statement (str): Parameterized INSERT SQL statement
+                - values_list (list): List of values to be inserted
+        """
         cls = self.__class__
-        INSERT_SQL = "INSERT INTO {name} ({columns}) VALUES ({placeholders});"
+        table_name = cls.__name__.lower()
+        
+        # SQL template for INSERT statements
+        INSERT_SQL = """
+            INSERT INTO {table_name} ({columns})
+            VALUES ({placeholders});
+        """.strip()
+
+        # Initialize collection lists
         fields = []
-        placeholders = []
         values = []
+        placeholders = []
+
+        # Collect field information from class members
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
                 values.append(getattr(self, name))
                 placeholders.append("?")
             elif isinstance(field, ForeignKey):
-                fields.append(name + "_id")
+                # For foreign keys, store the reference ID
+                field_name = f"{name}_id"
+                fields.append(field_name)
                 values.append(getattr(self, name).id)
                 placeholders.append("?")
-        columns = ", ".join(self._get_columns())
-        placeholders =  ", ".join(placeholders)
-        sql = INSERT_SQL.format(name=cls.__name__.lower(), columns=columns, placeholders=placeholders)
+
+        # Build the SQL statement
+        sql = INSERT_SQL.format(
+            table_name=table_name,
+            columns=", ".join(self._get_columns()),
+            placeholders=", ".join(placeholders)
+        )
+
         return sql, values
 
     @classmethod
