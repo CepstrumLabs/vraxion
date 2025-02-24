@@ -37,10 +37,32 @@ class Table:
         # If not found in _data, fall back to normal attribute lookup
         return super().__getattribute__(key)
 
-    def __setattr__(self, key: str, value):
+    def __setattr__(self, key: str, value: Any) -> None:
+        """Custom attribute setter that handles both instance attributes and data storage.
+        
+        This method provides a dual-purpose attribute setter that:
+        1. Sets the attribute normally using the parent class setter
+        2. Updates the internal _data dictionary if the key exists there
+        
+        Args:
+            key (str): The name of the attribute to set
+            value (Any): The value to assign to the attribute
+            
+        Example:
+            >>> instance = MyClass()
+            >>> instance._data = {'name': 'John'}
+            >>> instance.name = 'Jane'  # Updates both attribute and _data
+        """
+        # First, set the attribute normally using parent class setter
         super().__setattr__(key, value)
-        if key in self._data:
-            self._data[key] = value
+        
+        # If this key exists in our data storage, update it there too
+        try:
+            if key in self._data:
+                self._data[key] = value
+        except AttributeError:
+            # Handle case where _data hasn't been initialized yet
+            pass
 
     def __init__(self, **kwargs):
         self._data = {"id": None}
