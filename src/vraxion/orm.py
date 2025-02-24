@@ -49,23 +49,47 @@ class Table:
         return columns
 
     def _get_insert_sql(self):
+        """Generate SQL INSERT statement and values for the current record.
+
+        Returns:
+            tuple: A tuple containing (sql_statement, values_list) where:
+                - sql_statement (str): Parameterized INSERT SQL statement
+                - values_list (list): List of values to be inserted
+        """
         cls = self.__class__
-        INSERT_SQL = "INSERT INTO {name} ({columns}) VALUES ({placeholders});"
+        table_name = cls.__name__.lower()
+        
+        # SQL template for INSERT statements
+        INSERT_SQL = """
+            INSERT INTO {table_name} ({columns})
+            VALUES ({placeholders});
+        """.strip()
+
+        # Initialize collection lists
         fields = []
-        placeholders = []
         values = []
+        placeholders = []
+
+        # Collect field information from class members
         for name, field in inspect.getmembers(cls):
             if isinstance(field, Column):
                 fields.append(name)
                 values.append(getattr(self, name))
                 placeholders.append("?")
             elif isinstance(field, ForeignKey):
-                fields.append(name + "_id")
+                # For foreign keys, store the reference ID
+                field_name = f"{name}_id"
+                fields.append(field_name)
                 values.append(getattr(self, name).id)
                 placeholders.append("?")
-        columns = ", ".join(self._get_columns())
-        placeholders =  ", ".join(placeholders)
-        sql = INSERT_SQL.format(name=cls.__name__.lower(), columns=columns, placeholders=placeholders)
+
+        # Build the SQL statement
+        sql = INSERT_SQL.format(
+            table_name=table_name,
+            columns=", ".join(self._get_columns()),
+            placeholders=", ".join(placeholders)
+        )
+
         return sql, values
 
     @classmethod
